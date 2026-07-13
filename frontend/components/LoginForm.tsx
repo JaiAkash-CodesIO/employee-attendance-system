@@ -2,80 +2,58 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/services/auth";
+import { login } from "../services/auth";
 
 export default function LoginForm() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
-    setLoading(true);
-    setError("");
+    const result = await login(employeeId, password);
 
-    try {
-      await login(email, password);
-
-      alert("Login Successful!");
-
+    if (result.success) {
+      localStorage.setItem("employee", JSON.stringify(result.employee));
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } else {
+      alert(result.message);
     }
-
-    setLoading(false);
   }
 
   return (
-    <form onSubmit={handleLogin} className="space-y-5">
+    <form
+      onSubmit={handleLogin}
+      className="space-y-4 rounded-xl bg-white p-8 shadow-lg w-96"
+    >
+      <h1 className="text-3xl font-bold text-center">
+        Employee Login
+      </h1>
 
-      {error && (
-        <div className="rounded bg-red-100 p-3 text-red-600">
-          {error}
-        </div>
-      )}
+      <input
+        type="text"
+        placeholder="Employee ID"
+        value={employeeId}
+        onChange={(e) => setEmployeeId(e.target.value)}
+        className="w-full rounded border p-3"
+      />
 
-      <div>
-        <label className="block mb-2 font-medium">
-          Email
-        </label>
-
-        <input
-          type="email"
-          className="w-full rounded-lg border p-3"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-
-      <div>
-        <label className="block mb-2 font-medium">
-          Password
-        </label>
-
-        <input
-          type="password"
-          className="w-full rounded-lg border p-3"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="w-full rounded border p-3"
+      />
 
       <button
-        className="w-full rounded-lg bg-blue-600 p-3 text-white"
-        disabled={loading}
+        className="w-full rounded bg-blue-600 p-3 text-white"
+        type="submit"
       >
-        {loading ? "Signing In..." : "Login"}
+        Login
       </button>
-
     </form>
   );
 }
