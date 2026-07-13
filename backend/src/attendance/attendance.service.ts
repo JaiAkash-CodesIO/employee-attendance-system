@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseService } from '../firebase/firebase.service';
+import { Response } from 'express';
+import { Parser } from 'json2csv';
+import PDFDocument from 'pdfkit';
 
 @Injectable()
 export class AttendanceService {
@@ -81,19 +84,81 @@ export class AttendanceService {
       ...doc.data(),
     }));
 
-    // Sort records in JavaScript instead of Firestore
     records.sort((a: any, b: any) => b.date.localeCompare(a.date));
 
     return records;
   }
+
+  // =======================
+  // Get All Attendance
+  // =======================
   async getAllAttendance() {
-  const db = this.firebase.getFirestore();
+    const db = this.firebase.getFirestore();
 
-  const snapshot = await db.collection("attendance").get();
+    const snapshot = await db.collection('attendance').get();
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-}
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  }
+
+  // =======================
+  // Export CSV
+  // =======================
+  async exportCSV(res: Response) {
+    const db = this.firebase.getFirestore();
+
+    const snapshot = await db.collection('attendance').get();
+
+    const records = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const parser = new Parser();
+
+    const csv = parser.parse(records);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('attendance.csv');
+
+    return res.send(csv);
+  }
+
+  // =======================
+  // Export PDF
+  // =======================
+  async exportPDF(res: Response) {
+    const db = this.firebase.getFirestore();
+
+    const snapshot = await db.collection('attendance').get();
+
+    const records = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const pdf = new PDFDocument();
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=attendance-report.pdf',
+    );
+
+    pdf.pipe(res);
+
+    pdf.fontSize(20).text('Employee Attendance Report');
+    pdf.moveDown();
+
+    records.forEach((r: any) => {
+      pdf.text(`Employee ID : ${r.employeeId}`);
+      pdf.text(`Date        : ${r.date}`);
+      pdf.text(`Status      : ${r.status}`);
+      pdf.text('----------------------------------------');
+    });
+
+    pdf.end();
+  }
 }

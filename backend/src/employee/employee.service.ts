@@ -6,50 +6,51 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 export class EmployeeService {
   constructor(private firebase: FirebaseService) {}
 
+  // Register Employee
   async create(dto: CreateEmployeeDto) {
     const db = this.firebase.getFirestore();
 
-    // Prevent duplicate employee IDs
-    const existing = await db
-      .collection('employees')
-      .where('employeeId', '==', dto.employeeId)
-      .limit(1)
-      .get();
+    const employee = {
+      employeeId: dto.employeeId,
+      name: dto.name,
+      email: dto.email,
+      department: dto.department,
+      password: dto.password,
+    };
 
-    if (!existing.empty) {
-      return {
-        success: false,
-        message: 'Employee already exists',
-      };
-    }
-
-    const doc = await db.collection('employees').add(dto);
+    const doc = await db.collection('employees').add(employee);
 
     return {
       success: true,
       id: doc.id,
-      message: 'Employee Registered Successfully',
     };
   }
 
+  // Employee Login
   async login(employeeId: string, password: string) {
     const db = this.firebase.getFirestore();
 
     const snapshot = await db
       .collection('employees')
       .where('employeeId', '==', employeeId)
-      .where('password', '==', password)
       .limit(1)
       .get();
 
     if (snapshot.empty) {
       return {
         success: false,
-        message: 'Invalid Employee ID or Password',
+        message: 'Employee not found',
       };
     }
 
-    const employee = snapshot.docs[0].data();
+    const employee: any = snapshot.docs[0].data();
+
+    if (employee.password !== password) {
+      return {
+        success: false,
+        message: 'Incorrect password',
+      };
+    }
 
     return {
       success: true,
@@ -57,14 +58,33 @@ export class EmployeeService {
     };
   }
 
+  // Get All Employees
   async findAll() {
     const db = this.firebase.getFirestore();
 
     const snapshot = await db.collection('employees').get();
 
-    return snapshot.docs.map(doc => ({
+    return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
   }
+  async findOne(employeeId: string) {
+  const db = this.firebase.getFirestore();
+
+  const snapshot = await db
+    .collection("employees")
+    .where("employeeId", "==", employeeId)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  return {
+    id: snapshot.docs[0].id,
+    ...snapshot.docs[0].data(),
+  };
+}
 }
