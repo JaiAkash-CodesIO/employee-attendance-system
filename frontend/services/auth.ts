@@ -1,10 +1,14 @@
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+export async function login(employeeId: string, password: string) {
+  const response = await fetch("http://localhost:3001/employee/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      employeeId,
+      password,
+    }),
+  });
 
-export async function login(email: string, password: string) {
-  return signInWithEmailAndPassword(auth, email, password);
-}
-
-export async function logout() {
-  return signOut(auth);
+  return await response.json();
 }
