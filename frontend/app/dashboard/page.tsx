@@ -24,24 +24,23 @@ export default function Dashboard() {
 }, []);
 
   async function loadAttendance() {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/attendance/`
-    );
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/attendance/${employeeId}`
+  );
 
-    const data = await res.json();
+  const data = await res.json();
 
-    setRecords(data);
-  }
-
+  setRecords(data);
+}
   async function loadEmployee() {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/employee/`
-    );
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/employee/${employeeId}`
+  );
 
-    const data = await res.json();
+  const data = await res.json();
 
-    setEmployee(data);
-  }
+  setEmployee(data);
+}
 
   async function punchIn() {
     const res = await fetch(
