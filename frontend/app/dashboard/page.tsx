@@ -25,7 +25,7 @@ export default function Dashboard() {
 
   async function loadAttendance() {
     const res = await fetch(
-      `http://localhost:3001/attendance/${employeeId}`
+      `${process.env.NEXT_PUBLIC_API_URL}/attendance/`
     );
 
     const data = await res.json();
@@ -35,7 +35,7 @@ export default function Dashboard() {
 
   async function loadEmployee() {
     const res = await fetch(
-      `http://localhost:3001/employee/${employeeId}`
+      `${process.env.NEXT_PUBLIC_API_URL}/employee/`
     );
 
     const data = await res.json();
@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   async function punchIn() {
     const res = await fetch(
-      "http://localhost:3001/attendance/punch-in",
+      "${process.env.NEXT_PUBLIC_API_URL}/attendance/punch-in",
       {
         method: "POST",
         headers: {
@@ -67,7 +67,7 @@ export default function Dashboard() {
 
   async function punchOut() {
     const res = await fetch(
-      "http://localhost:3001/attendance/punch-out",
+      "${process.env.NEXT_PUBLIC_API_URL}/attendance/punch-out",
       {
         method: "POST",
         headers: {

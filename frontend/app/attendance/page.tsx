@@ -7,7 +7,7 @@ export default function AttendancePage() {
 
   async function loadAttendance() {
     const res = await fetch(
-      "http://localhost:3001/attendance/EMP001"
+      "${process.env.NEXT_PUBLIC_API_URL}/attendance/all"
     );
 
     const data = await res.json();

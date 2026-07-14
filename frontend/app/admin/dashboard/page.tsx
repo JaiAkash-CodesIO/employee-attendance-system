@@ -70,10 +70,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() =>
-              window.open(
-                "http://localhost:3001/attendance/export/csv",
-                "_blank"
-              )
+             window.open(
+  `${process.env.NEXT_PUBLIC_API_URL}/attendance/export/csv`,
+  "_blank"
+)
             }
             className="mt-6 w-full rounded-xl bg-green-600 p-3 text-white hover:bg-green-700"
           >
@@ -82,10 +82,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() =>
-              window.open(
-                "http://localhost:3001/attendance/export/pdf",
-                "_blank"
-              )
+             window.open(
+  `${process.env.NEXT_PUBLIC_API_URL}/attendance/export/pdf`,
+  "_blank"
+)
             }
             className="mt-4 w-full rounded-xl bg-red-600 p-3 text-white hover:bg-red-700"
           >

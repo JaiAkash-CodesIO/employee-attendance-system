@@ -22,7 +22,7 @@ export default function Register() {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/employee", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/employee/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
