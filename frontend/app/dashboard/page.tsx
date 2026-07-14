@@ -1,14 +1,13 @@
 "use client";
-
 import { useEffect, useState } from "react";
 
-export default function Dashboard() {
+export default function Dashboard() {  
   const [status, setStatus] = useState("Not Punched In");
   const [records, setRecords] = useState<any[]>([]);
   const [employeeId, setEmployeeId] = useState("");
   const [employee, setEmployee] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-
+  
   useEffect(() => {
     const id = localStorage.getItem("employeeId");
 

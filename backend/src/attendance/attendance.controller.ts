@@ -24,9 +24,10 @@ export class AttendanceController {
     return this.attendanceService.punchOut(dto.employeeId);
   }
 
-  @Get(':employeeId')
-  getAttendance(@Param('employeeId') employeeId: string) {
-    return this.attendanceService.getAttendance(employeeId);
+  // IMPORTANT: Put this BEFORE ':employeeId'
+  @Get('all')
+  getAllAttendance() {
+    return this.attendanceService.getAllAttendance();
   }
 
   @Get('export/csv')
@@ -37,5 +38,10 @@ export class AttendanceController {
   @Get('export/pdf')
   exportPDF(@Res() res: Response) {
     return this.attendanceService.exportPDF(res);
+  }
+
+  @Get(':employeeId')
+  getAttendance(@Param('employeeId') employeeId: string) {
+    return this.attendanceService.getAttendance(employeeId);
   }
 }
