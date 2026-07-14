@@ -1,16 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+
 
 export default function AdminDashboard() {
   const router = useRouter();
+function logout() {
+  localStorage.removeItem("employeeId");
+  router.push("/login");
+}
 
+function goBack() {
+  router.back();
+}
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-10">
 
       <h1 className="text-5xl font-bold text-white mb-10">
         Admin Dashboard
       </h1>
+      <div className="flex justify-between mb-6">
+
+  <button
+    onClick={goBack}
+    className="rounded-xl bg-gray-700 px-4 py-2 text-white hover:bg-gray-800"
+  >
+    ← Back
+  </button>
+
+  <button
+    onClick={logout}
+    className="rounded-xl bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+  >
+    Logout
+  </button>
+
+</div>
 
       <div className="grid grid-cols-3 gap-8">
 

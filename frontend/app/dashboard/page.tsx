@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {  
+  const router = useRouter();
   const [status, setStatus] = useState("Not Punched In");
   const [records, setRecords] = useState<any[]>([]);
   const [employeeId, setEmployeeId] = useState("");
@@ -94,11 +96,37 @@ export default function Dashboard() {
       loadEmployee();
     }
   }, [employeeId]);
+  function logout() {
+  localStorage.removeItem("employeeId");
+  router.push("/login");
+}
+
+function goBack() {
+  router.back();
+}
+
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white p-10">
 
       <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between mb-6">
+
+  <button
+    onClick={goBack}
+    className="rounded-xl bg-gray-700 px-4 py-2 text-white hover:bg-gray-800"
+  >
+    ← Back
+  </button>
+
+  <button
+    onClick={logout}
+    className="rounded-xl bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+  >
+    Logout
+  </button>
+
+</div>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
 
