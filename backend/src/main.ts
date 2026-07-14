@@ -5,13 +5,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      'https://employee-attendance-system-seven-rho.vercel.app',
+    ],
     credentials: true,
   });
 
-  await app.listen(3001);
+  const port = process.env.PORT || 3001;
 
-  console.log('🚀 Backend running at http://localhost:3001');
+  await app.listen(port);
+
+  console.log(`🚀 Backend running on port ${port}`);
 }
 
 bootstrap();
