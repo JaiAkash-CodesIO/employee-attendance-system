@@ -16,7 +16,7 @@ export default function EmployeeList() {
 
   async function loadEmployees() {
     try {
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/employee");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/employee`);
       const data = await response.json();
       setEmployees(data);
     } catch (error) {
