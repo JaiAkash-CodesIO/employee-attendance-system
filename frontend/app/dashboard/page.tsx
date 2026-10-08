@@ -17,6 +17,7 @@ import {
   History,
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AttendanceRecord {
   id: string;
@@ -91,7 +92,6 @@ export default function Dashboard() {
     }
   }, [employeeId]);
 
-  // Determine today's status from records
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
   const todayRecord = useMemo(
     () => records.find((r) => r.date === todayStr),
@@ -203,51 +203,54 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 text-white p-6 md:p-10">
+    <main className="min-h-screen bg-[var(--bg-page)] text-[var(--text-main)] p-6 md:p-10 transition-colors duration-200">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => router.push("/")}
-            className="flex items-center gap-2 rounded-xl bg-slate-800/80 px-4 py-2 text-sm text-gray-300 hover:bg-slate-700 hover:text-white transition border border-slate-700"
+            className="flex items-center gap-2 rounded-xl bg-white dark:bg-slate-800/80 px-4 py-2 text-sm text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition border border-slate-200 dark:border-slate-700 shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" /> Home
           </button>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 rounded-xl bg-rose-600/20 px-4 py-2 text-sm font-semibold text-rose-300 hover:bg-rose-600 hover:text-white transition border border-rose-500/30"
-          >
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 rounded-xl bg-rose-500/10 dark:bg-rose-600/20 px-4 py-2 text-sm font-semibold text-rose-600 dark:text-rose-300 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-600 transition border border-rose-500/30"
+            >
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
+          </div>
         </div>
 
         {/* Header with Live Clock */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-2">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 Welcome, {employee?.name || employeeId}
               </h1>
-              <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
                 Active Member
               </span>
             </div>
-            <p className="text-gray-400 mt-2 text-sm md:text-base">
+            <p className="text-slate-500 dark:text-gray-400 mt-2 text-sm md:text-base">
               Employee Portal • Log attendance and review your shift records
             </p>
           </div>
 
-          <div className="rounded-2xl border border-cyan-500/40 bg-white/5 backdrop-blur-xl px-6 py-4 shadow-xl">
-            <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-1">
+          <div className="rounded-2xl border border-slate-200 dark:border-cyan-500/40 bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl px-6 py-4 shadow-md dark:shadow-xl">
+            <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-1">
               <Calendar className="w-3.5 h-3.5" />
               <span>{currentTime.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl md:text-4xl font-mono font-bold text-white tracking-wider">
+              <span className="text-3xl md:text-4xl font-mono font-bold text-slate-900 dark:text-white tracking-wider">
                 {currentTime.toLocaleTimeString()}
               </span>
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
           </div>
         </div>
@@ -255,44 +258,44 @@ export default function Dashboard() {
         {/* Main Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Profile & Shift Control Card */}
-          <div className="rounded-3xl bg-white/5 backdrop-blur-2xl border border-cyan-500/30 shadow-2xl p-6 md:p-8 flex flex-col justify-between">
+          <div className="rounded-3xl bg-white dark:bg-slate-900/60 backdrop-blur-2xl border border-slate-200 dark:border-cyan-500/30 shadow-md dark:shadow-2xl p-6 md:p-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-slate-950 font-bold text-2xl shadow-lg shadow-cyan-500/20">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-cyan-500/20">
                   <User className="w-8 h-8" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">{employee?.name || "Employee"}</h2>
-                  <p className="text-sm text-cyan-300 font-mono">{employee?.employeeId || employeeId}</p>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">{employee?.name || "Employee"}</h2>
+                  <p className="text-sm text-cyan-600 dark:text-cyan-300 font-mono font-semibold">{employee?.employeeId || employeeId}</p>
                 </div>
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-slate-800 text-sm">
-                <div className="flex items-center justify-between text-gray-300">
-                  <span className="flex items-center gap-2 text-gray-400">
-                    <Mail className="w-4 h-4 text-cyan-400" /> Email
+              <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
+                    <Mail className="w-4 h-4 text-cyan-500" /> Email
                   </span>
-                  <span className="font-medium text-white truncate max-w-[180px]">{employee?.email || "-"}</span>
+                  <span className="font-medium text-slate-900 dark:text-white truncate max-w-[180px]">{employee?.email || "-"}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-gray-300">
-                  <span className="flex items-center gap-2 text-gray-400">
-                    <Building className="w-4 h-4 text-cyan-400" /> Department
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
+                    <Building className="w-4 h-4 text-cyan-500" /> Department
                   </span>
-                  <span className="font-medium text-white">{employee?.department || "-"}</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{employee?.department || "-"}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-gray-300">
-                  <span className="flex items-center gap-2 text-gray-400">
-                    <Briefcase className="w-4 h-4 text-cyan-400" /> Current Status
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
+                    <Briefcase className="w-4 h-4 text-cyan-500" /> Current Status
                   </span>
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                       currentStatus === "Currently Working"
-                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/30"
                         : currentStatus === "Shift Completed"
-                        ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                        : "bg-slate-700/50 text-gray-300"
+                        ? "bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-500/30"
+                        : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-gray-300"
                     }`}
                   >
                     {currentStatus}
@@ -300,19 +303,19 @@ export default function Dashboard() {
                 </div>
 
                 {todayRecord && (
-                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 mt-2 space-y-1 text-xs">
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 mt-2 space-y-1.5 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Today&apos;s Punch In:</span>
-                      <span className="font-semibold text-white">{formatTimestamp(todayRecord.punchIn)}</span>
+                      <span className="text-slate-500 dark:text-gray-400">Today&apos;s Punch In:</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">{formatTimestamp(todayRecord.punchIn)}</span>
                     </div>
                     {todayRecord.punchOut && (
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Today&apos;s Punch Out:</span>
-                        <span className="font-semibold text-white">{formatTimestamp(todayRecord.punchOut)}</span>
+                        <span className="text-slate-500 dark:text-gray-400">Today&apos;s Punch Out:</span>
+                        <span className="font-semibold text-slate-900 dark:text-white">{formatTimestamp(todayRecord.punchOut)}</span>
                       </div>
                     )}
                     {todayRecord.workDuration && (
-                      <div className="flex justify-between text-cyan-300 font-semibold pt-1 border-t border-slate-800">
+                      <div className="flex justify-between text-cyan-600 dark:text-cyan-300 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800">
                         <span>Work Duration:</span>
                         <span>{todayRecord.workDuration}</span>
                       </div>
@@ -323,11 +326,11 @@ export default function Dashboard() {
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-6 mt-6 border-t border-slate-800 space-y-3">
+            <div className="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
               <button
                 onClick={handlePunchIn}
                 disabled={loadingAction !== null || (!!todayRecord && !todayRecord.punchOut)}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 font-bold text-slate-950 transition hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 font-bold text-white transition hover:from-emerald-400 hover:to-teal-500 shadow-md shadow-emerald-500/20 disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loadingAction === "punchIn" ? (
                   <>
@@ -343,7 +346,7 @@ export default function Dashboard() {
               <button
                 onClick={handlePunchOut}
                 disabled={loadingAction !== null || !todayRecord || !!todayRecord.punchOut}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 py-3 font-bold text-white transition hover:from-rose-400 hover:to-pink-400 shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 py-3 font-bold text-white transition hover:from-rose-400 hover:to-pink-500 shadow-md shadow-rose-500/20 disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loadingAction === "punchOut" ? (
                   <>
@@ -359,13 +362,13 @@ export default function Dashboard() {
           </div>
 
           {/* Attendance History */}
-          <div className="lg:col-span-2 rounded-3xl bg-white/5 backdrop-blur-2xl border border-cyan-500/30 shadow-2xl p-6 md:p-8">
+          <div className="lg:col-span-2 rounded-3xl bg-white dark:bg-slate-900/60 backdrop-blur-2xl border border-slate-200 dark:border-cyan-500/30 shadow-md dark:shadow-2xl p-6 md:p-8">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <History className="w-6 h-6 text-cyan-400" />
-                <h2 className="text-2xl font-bold text-white">Attendance Log</h2>
+                <History className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Attendance Log</h2>
               </div>
-              <span className="text-xs text-gray-400 font-mono">
+              <span className="text-xs text-slate-500 dark:text-gray-400 font-mono">
                 {records.length} {records.length === 1 ? "record" : "records"} logged
               </span>
             </div>
@@ -373,7 +376,7 @@ export default function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 text-gray-400 uppercase text-xs font-semibold">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-gray-400 uppercase text-xs font-semibold bg-slate-50/50 dark:bg-slate-900/40">
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Punch In</th>
                     <th className="py-3 px-3">Punch Out</th>
@@ -381,32 +384,32 @@ export default function Dashboard() {
                     <th className="py-3 px-3 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {records.map((record) => (
-                    <tr key={record.id} className="hover:bg-white/5 transition">
-                      <td className="py-3.5 px-3 font-medium text-white flex items-center gap-2">
+                    <tr key={record.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
+                      <td className="py-3.5 px-3 font-medium text-slate-900 dark:text-white flex items-center gap-2">
                         {record.date}
                         {record.punchInLocation && (
-                          <span title="GPS Verified" className="text-cyan-400">
+                          <span title="GPS Verified" className="text-cyan-500 dark:text-cyan-400">
                             <MapPin className="w-3.5 h-3.5 inline" />
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-3 text-gray-300 font-mono">
+                      <td className="py-3.5 px-3 text-slate-600 dark:text-gray-300 font-mono">
                         {formatTimestamp(record.punchIn)}
                       </td>
-                      <td className="py-3.5 px-3 text-gray-300 font-mono">
+                      <td className="py-3.5 px-3 text-slate-600 dark:text-gray-300 font-mono">
                         {formatTimestamp(record.punchOut)}
                       </td>
-                      <td className="py-3.5 px-3 text-cyan-300 font-semibold">
+                      <td className="py-3.5 px-3 text-cyan-600 dark:text-cyan-300 font-semibold">
                         {record.workDuration || "-"}
                       </td>
                       <td className="py-3.5 px-3 text-right">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             record.status === "Completed"
-                              ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                              ? "bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-500/30"
+                              : "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/30"
                           }`}
                         >
                           {record.status}
@@ -417,7 +420,7 @@ export default function Dashboard() {
 
                   {records.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-gray-400">
+                      <td colSpan={5} className="py-12 text-center text-slate-500 dark:text-gray-400">
                         No attendance history found. Punch in above to create your first record!
                       </td>
                     </tr>

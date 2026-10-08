@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-page: #f8fafc;
+  --bg-page-gradient: radial-gradient(at 0% 0%, #f0fdf4 0px, transparent 50%),
+    radial-gradient(at 100% 0%, #e0f2fe 0px, transparent 50%),
+    radial-gradient(at 50% 100%, #eff6ff 0px, transparent 50%),
+    #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-glass: rgba(255, 255, 255, 0.85);
+  --border-card: #e2e8f0;
+  --border-accent: rgba(6, 182, 212, 0.4);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-accent: #0284c7;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --table-hover: #f1f5f9;
+  --table-border: #e2e8f0;
+  --table-header: #f8fafc;
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --bg-page: #030712;
+  --bg-page-gradient: radial-gradient(at 0% 0%, #032128 0px, transparent 50%),
+    radial-gradient(at 100% 0%, #081b33 0px, transparent 50%),
+    radial-gradient(at 50% 100%, #020617 0px, transparent 50%),
+    #030712;
+  --bg-card: #0f172a;
+  --bg-card-glass: rgba(15, 23, 42, 0.7);
+  --border-card: rgba(51, 65, 85, 0.6);
+  --border-accent: rgba(6, 182, 212, 0.35);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-accent: #38bdf8;
+  --input-bg: rgba(15, 23, 42, 0.85);
+  --input-border: #334155;
+  --table-hover: rgba(255, 255, 255, 0.04);
+  --table-border: #1e293b;
+  --table-header: #0b1120;
+  --shadow-card: 0 20px 30px -10px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
+}
+
+/* Glassmorphism surfaces */
+.surface-glass {
+  background: var(--bg-card-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+}
+
+.surface-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User, Lock, ArrowLeft, ArrowRight, Loader2, Clock } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -61,33 +62,36 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 px-6 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-cyan-500/40 bg-white/5 p-8 md:p-10 shadow-2xl backdrop-blur-2xl">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Home
-        </Link>
+    <main className="min-h-screen flex items-center justify-center bg-[var(--bg-page)] text-[var(--text-main)] px-6 py-12 transition-colors duration-200">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 dark:border-cyan-500/30 bg-white/80 dark:bg-slate-900/60 p-8 md:p-10 shadow-xl dark:shadow-2xl backdrop-blur-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition"
+          >
+            <ArrowLeft className="w-4 h-4" /> Home
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div className="flex justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-500 shadow-xl shadow-cyan-500/20">
-            <Clock className="h-10 w-10 text-slate-950" />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 shadow-xl shadow-cyan-500/20">
+            <Clock className="h-10 w-10 text-white" />
           </div>
         </div>
 
         <div className="mt-6 text-center">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Employee Login
           </h1>
-          <p className="mt-1 text-sm text-gray-400">
-            Access your attendance dashboard & punch records
+          <p className="mt-1 text-sm text-slate-500 dark:text-gray-400">
+            Sign in to access your shift records and live dashboard
           </p>
         </div>
 
         <form onSubmit={login} className="mt-8 space-y-5">
           <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-cyan-300">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-cyan-300">
               Employee ID
             </label>
             <div className="relative">
@@ -97,13 +101,13 @@ export default function LoginPage() {
                 placeholder="e.g. EMP101"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900/80 pl-11 pr-4 py-3 text-white placeholder-gray-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 pl-11 pr-4 py-3 text-slate-900 dark:text-white placeholder-gray-400 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 shadow-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-cyan-300">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-cyan-300">
               Password
             </label>
             <div className="relative">
@@ -113,7 +117,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900/80 pl-11 pr-4 py-3 text-white placeholder-gray-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 pl-11 pr-4 py-3 text-slate-900 dark:text-white placeholder-gray-400 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 shadow-sm"
               />
             </div>
           </div>
@@ -121,7 +125,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 py-3.5 text-base font-bold text-slate-950 transition hover:from-cyan-300 hover:to-blue-400 shadow-lg shadow-cyan-500/25 disabled:opacity-60"
+            className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 py-3.5 text-base font-bold text-white transition hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 disabled:opacity-60"
           >
             {loading ? (
               <>
@@ -135,9 +139,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-gray-400">
+        <div className="mt-8 text-center text-sm text-slate-500 dark:text-gray-400">
           Don&apos;t have an account yet?{" "}
-          <Link href="/register" className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-4">
+          <Link href="/register" className="text-cyan-600 dark:text-cyan-400 hover:underline font-semibold underline-offset-4">
             Register here
           </Link>
         </div>
