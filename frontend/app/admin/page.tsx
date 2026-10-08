@@ -133,15 +133,8 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        {/* Demo Credentials Helper */}
-        <div className="mt-8 rounded-2xl border border-cyan-500/30 bg-cyan-50/50 dark:bg-cyan-950/30 p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-cyan-700 dark:text-cyan-300 mb-2">
-            Demo Credentials
-          </h2>
-          <div className="flex justify-between text-xs text-slate-600 dark:text-gray-300 font-mono">
-            <span>User: <strong className="text-slate-900 dark:text-white">admin</strong></span>
-            <span>Password: <strong className="text-slate-900 dark:text-white">admin123</strong></span>
-          </div>
+        <div className="mt-8 text-center text-xs text-slate-400 dark:text-gray-500">
+          Authorized personnel only. Access attempts are monitored.
         </div>
       </div>
     </main>
