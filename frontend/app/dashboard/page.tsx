@@ -1,92 +1,86 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
-export default function Dashboard() {  
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Clock,
+  Calendar,
+  User,
+  Building,
+  Mail,
+  MapPin,
+  CheckCircle2,
+  LogOut,
+  ArrowLeft,
+  Loader2,
+  Briefcase,
+  History,
+} from "lucide-react";
+import { useToast } from "@/components/Toast";
+
+interface AttendanceRecord {
+  id: string;
+  date: string;
+  punchIn?: any;
+  punchOut?: any;
+  workDuration?: string;
+  status: string;
+  punchInLocation?: {
+    latitude: number;
+    longitude: number;
+    locationName?: string;
+  };
+}
+
+export default function Dashboard() {
   const router = useRouter();
-  const [status, setStatus] = useState("Not Punched In");
-  const [records, setRecords] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [employeeId, setEmployeeId] = useState("");
   const [employee, setEmployee] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  
+  const [loadingAction, setLoadingAction] = useState<"punchIn" | "punchOut" | null>(null);
+
   useEffect(() => {
     const id = localStorage.getItem("employeeId");
-
-    if (id) {
-      setEmployeeId(id);
+    if (!id) {
+      router.push("/login");
+      return;
     }
-  }, []);
-  useEffect(() => {
-  const timer = setInterval(() => {
-    setCurrentTime(new Date());
-  }, 1000);
+    setEmployeeId(id);
+  }, [router]);
 
-  return () => clearInterval(timer);
-}, []);
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   async function loadAttendance() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/attendance/${employeeId}`
-  );
-
-  const data = await res.json();
-
-  setRecords(data);
-}
-  async function loadEmployee() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/employee/${employeeId}`
-  );
-
-  const data = await res.json();
-
-  setEmployee(data);
-}
-
-  async function punchIn() {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/attendance/punch-in`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          employeeId,
-        }),
+    if (!employeeId) return;
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/attendance/${employeeId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRecords(data);
       }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setStatus("Working");
-      loadAttendance();
+    } catch (err) {
+      console.error("Error loading attendance:", err);
     }
   }
 
-  async function punchOut() {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/attendance/punch-out`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          employeeId,
-        }),
+  async function loadEmployee() {
+    if (!employeeId) return;
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/employee/${employeeId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setEmployee(data);
       }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setStatus("Punched Out");
-      loadAttendance();
-    } else {
-      alert(data.message);
+    } catch (err) {
+      console.error("Error loading employee profile:", err);
     }
   }
 
@@ -96,261 +90,344 @@ export default function Dashboard() {
       loadEmployee();
     }
   }, [employeeId]);
-  function logout() {
-  localStorage.removeItem("employeeId");
-  router.push("/login");
-}
 
-function goBack() {
-  router.back();
-}
+  // Determine today's status from records
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayRecord = useMemo(
+    () => records.find((r) => r.date === todayStr),
+    [records, todayStr]
+  );
 
+  const currentStatus = useMemo(() => {
+    if (!todayRecord) return "Not Punched In";
+    if (todayRecord.punchOut) return "Shift Completed";
+    return "Currently Working";
+  }, [todayRecord]);
+
+  function getGPSCoordinates(): Promise<{ latitude?: number; longitude?: number }> {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined" || !navigator.geolocation) {
+        return resolve({});
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        () => resolve({}),
+        { timeout: 6000 }
+      );
+    });
+  }
+
+  async function handlePunchIn() {
+    setLoadingAction("punchIn");
+    try {
+      const coords = await getGPSCoordinates();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+      const res = await fetch(`${apiUrl}/attendance/punch-in`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          locationName: coords.latitude ? "Office Geo-Check" : undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        toast(
+          coords.latitude
+            ? "Punch In recorded with GPS coordinates!"
+            : "Punch In successful! Have a great shift.",
+          "success"
+        );
+        loadAttendance();
+      } else {
+        toast(data.message || "Failed to punch in.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Could not contact attendance server.", "error");
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  async function handlePunchOut() {
+    setLoadingAction("punchOut");
+    try {
+      const coords = await getGPSCoordinates();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+      const res = await fetch(`${apiUrl}/attendance/punch-out`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        toast(data.message || "Punch out recorded successfully!", "success");
+        loadAttendance();
+      } else {
+        toast(data.message || "Failed to punch out.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Could not contact attendance server.", "error");
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("employeeId");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("employeeData");
+    toast("You have been signed out.", "info");
+    router.push("/login");
+  }
+
+  const formatTimestamp = (ts: any) => {
+    if (!ts) return "-";
+    if (ts.toDate) return ts.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (ts._seconds) return new Date(ts._seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white p-10">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 text-white p-6 md:p-10">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 rounded-xl bg-slate-800/80 px-4 py-2 text-sm text-gray-300 hover:bg-slate-700 hover:text-white transition border border-slate-700"
+          >
+            <ArrowLeft className="w-4 h-4" /> Home
+          </button>
 
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between mb-6">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 rounded-xl bg-rose-600/20 px-4 py-2 text-sm font-semibold text-rose-300 hover:bg-rose-600 hover:text-white transition border border-rose-500/30"
+          >
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
 
-  <button
-    onClick={goBack}
-    className="rounded-xl bg-gray-700 px-4 py-2 text-white hover:bg-gray-800"
-  >
-    ← Back
-  </button>
+        {/* Header with Live Clock */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-2">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+                Welcome, {employee?.name || employeeId}
+              </h1>
+              <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                Active Member
+              </span>
+            </div>
+            <p className="text-gray-400 mt-2 text-sm md:text-base">
+              Employee Portal • Log attendance and review your shift records
+            </p>
+          </div>
 
-  <button
-    onClick={logout}
-    className="rounded-xl bg-red-600 px-4 py-2 text-white hover:bg-red-700"
-  >
-    Logout
-  </button>
+          <div className="rounded-2xl border border-cyan-500/40 bg-white/5 backdrop-blur-xl px-6 py-4 shadow-xl">
+            <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-1">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{currentTime.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</span>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl md:text-4xl font-mono font-bold text-white tracking-wider">
+                {currentTime.toLocaleTimeString()}
+              </span>
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            </div>
+          </div>
+        </div>
 
-</div>
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
-
-  <div>
-
-    <h1 className="text-5xl font-bold text-white">
-      Employee Attendance
-    </h1>
-
-    <p className="text-gray-400 mt-2">
-      Attendance Management Dashboard
-    </p>
-
-  </div>
-
-  <div className="mt-6 md:mt-0 rounded-2xl border border-cyan-500 bg-white/10 backdrop-blur-xl px-8 py-5 text-right shadow-lg">
-
-    <p className="text-gray-400 text-sm">
-      Today
-    </p>
-
-    <h2 className="text-2xl font-bold text-cyan-400">
-      {currentTime.toLocaleDateString("en-IN", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })}
-    </h2>
-
-    <p className="mt-2 text-4xl font-bold text-white">
-      {currentTime.toLocaleTimeString()}
-    </p>
-
-  </div>
-
-</div>
+        {/* Main Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
-
-          {/* Employee Card */}
-
-          <div className="rounded-3xl bg-white/10 backdrop-blur-xl border border-cyan-500 shadow-xl p-8">
-
-            <div className="flex justify-center mb-6">
-
-              <div className="w-24 h-24 rounded-full bg-cyan-500 flex items-center justify-center text-5xl">
-
-                👤
-
+          {/* Profile & Shift Control Card */}
+          <div className="rounded-3xl bg-white/5 backdrop-blur-2xl border border-cyan-500/30 shadow-2xl p-6 md:p-8 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-slate-950 font-bold text-2xl shadow-lg shadow-cyan-500/20">
+                  <User className="w-8 h-8" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">{employee?.name || "Employee"}</h2>
+                  <p className="text-sm text-cyan-300 font-mono">{employee?.employeeId || employeeId}</p>
+                </div>
               </div>
 
+              <div className="space-y-4 pt-4 border-t border-slate-800 text-sm">
+                <div className="flex items-center justify-between text-gray-300">
+                  <span className="flex items-center gap-2 text-gray-400">
+                    <Mail className="w-4 h-4 text-cyan-400" /> Email
+                  </span>
+                  <span className="font-medium text-white truncate max-w-[180px]">{employee?.email || "-"}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-gray-300">
+                  <span className="flex items-center gap-2 text-gray-400">
+                    <Building className="w-4 h-4 text-cyan-400" /> Department
+                  </span>
+                  <span className="font-medium text-white">{employee?.department || "-"}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-gray-300">
+                  <span className="flex items-center gap-2 text-gray-400">
+                    <Briefcase className="w-4 h-4 text-cyan-400" /> Current Status
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      currentStatus === "Currently Working"
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                        : currentStatus === "Shift Completed"
+                        ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                        : "bg-slate-700/50 text-gray-300"
+                    }`}
+                  >
+                    {currentStatus}
+                  </span>
+                </div>
+
+                {todayRecord && (
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 mt-2 space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Today&apos;s Punch In:</span>
+                      <span className="font-semibold text-white">{formatTimestamp(todayRecord.punchIn)}</span>
+                    </div>
+                    {todayRecord.punchOut && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Today&apos;s Punch Out:</span>
+                        <span className="font-semibold text-white">{formatTimestamp(todayRecord.punchOut)}</span>
+                      </div>
+                    )}
+                    {todayRecord.workDuration && (
+                      <div className="flex justify-between text-cyan-300 font-semibold pt-1 border-t border-slate-800">
+                        <span>Work Duration:</span>
+                        <span>{todayRecord.workDuration}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-center mb-8">
-              Employee Profile
-            </h2>
+            {/* Action Buttons */}
+            <div className="pt-6 mt-6 border-t border-slate-800 space-y-3">
+              <button
+                onClick={handlePunchIn}
+                disabled={loadingAction !== null || (!!todayRecord && !todayRecord.punchOut)}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 font-bold text-slate-950 transition hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {loadingAction === "punchIn" ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Recording Location...
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-5 h-5" /> Punch In (Start Shift)
+                  </>
+                )}
+              </button>
 
-            <div className="space-y-5">
-
-              <div>
-
-                <p className="text-gray-400 text-sm">
-                  Employee ID
-                </p>
-
-                <h3 className="text-xl font-bold text-cyan-400">
-                  {employee?.employeeId || employeeId}
-                </h3>
-
-              </div>
-
-              <div>
-
-                <p className="text-gray-400 text-sm">
-                  Name
-                </p>
-
-                <h3 className="text-lg">
-                  {employee?.name || "-"}
-                </h3>
-
-              </div>
-
-              <div>
-
-                <p className="text-gray-400 text-sm">
-                  Email
-                </p>
-
-                <h3>
-                  {employee?.email || "-"}
-                </h3>
-
-              </div>
-
-              <div>
-
-                <p className="text-gray-400 text-sm">
-                  Department
-                </p>
-
-                <h3>
-                  {employee?.department || "-"}
-                </h3>
-
-              </div>
-
-              <div>
-
-                <p className="text-gray-400 text-sm">
-                  Current Status
-                </p>
-
-                <h3 className="text-2xl font-bold text-green-400">
-                  🟢 {status}
-                </h3>
-
-              </div>
-
+              <button
+                onClick={handlePunchOut}
+                disabled={loadingAction !== null || !todayRecord || !!todayRecord.punchOut}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 py-3 font-bold text-white transition hover:from-rose-400 hover:to-pink-400 shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {loadingAction === "punchOut" ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Calculating Duration...
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="w-5 h-5" /> Punch Out (End Shift)
+                  </>
+                )}
+              </button>
             </div>
-
-            <button
-              onClick={punchIn}
-              className="mt-8 w-full rounded-xl bg-cyan-500 py-3 font-bold hover:bg-cyan-600 transition"
-            >
-              Punch In
-            </button>
-
-            <button
-              onClick={punchOut}
-              className="mt-4 w-full rounded-xl bg-red-500 py-3 font-bold hover:bg-red-600 transition"
-            >
-              Punch Out
-            </button>
-
           </div>
 
           {/* Attendance History */}
-
-          <div className="lg:col-span-2 rounded-3xl bg-white/10 backdrop-blur-xl border border-cyan-500 shadow-xl p-8">
-
-            <h2 className="text-3xl font-bold mb-8">
-              Attendance History
-            </h2>
-
-            <div className="overflow-auto">
-
-              <table className="w-full">
-
-                <thead>
-
-                  <tr className="border-b border-gray-600 text-left">
-
-                    <th className="py-4">Date</th>
-
-                    <th>Punch In</th>
-
-                    <th>Punch Out</th>
-
-                    <th>Status</th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  {records.map((record) => (
-
-                    <tr
-                      key={record.id}
-                      className="border-b border-gray-700 hover:bg-white/5"
-                    >
-
-                      <td className="py-4">
-                        {record.date}
-                      </td>
-
-                      <td>
-
-                        {record.punchIn
-                          ? new Date(
-                              record.punchIn._seconds * 1000
-                            ).toLocaleTimeString()
-                          : "-"}
-
-                      </td>
-
-                      <td>
-
-                        {record.punchOut
-                          ? new Date(
-                              record.punchOut._seconds * 1000
-                            ).toLocaleTimeString()
-                          : "-"}
-
-                      </td>
-
-                      <td>
-
-                        <span className="rounded-full bg-green-600 px-3 py-1 text-sm">
-
-                          {record.status}
-
-                        </span>
-
-                      </td>
-
-                    </tr>
-
-                  ))}
-
-                </tbody>
-
-              </table>
-
+          <div className="lg:col-span-2 rounded-3xl bg-white/5 backdrop-blur-2xl border border-cyan-500/30 shadow-2xl p-6 md:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <History className="w-6 h-6 text-cyan-400" />
+                <h2 className="text-2xl font-bold text-white">Attendance Log</h2>
+              </div>
+              <span className="text-xs text-gray-400 font-mono">
+                {records.length} {records.length === 1 ? "record" : "records"} logged
+              </span>
             </div>
 
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-800 text-gray-400 uppercase text-xs font-semibold">
+                    <th className="py-3 px-3">Date</th>
+                    <th className="py-3 px-3">Punch In</th>
+                    <th className="py-3 px-3">Punch Out</th>
+                    <th className="py-3 px-3">Work Duration</th>
+                    <th className="py-3 px-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {records.map((record) => (
+                    <tr key={record.id} className="hover:bg-white/5 transition">
+                      <td className="py-3.5 px-3 font-medium text-white flex items-center gap-2">
+                        {record.date}
+                        {record.punchInLocation && (
+                          <span title="GPS Verified" className="text-cyan-400">
+                            <MapPin className="w-3.5 h-3.5 inline" />
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-3 text-gray-300 font-mono">
+                        {formatTimestamp(record.punchIn)}
+                      </td>
+                      <td className="py-3.5 px-3 text-gray-300 font-mono">
+                        {formatTimestamp(record.punchOut)}
+                      </td>
+                      <td className="py-3.5 px-3 text-cyan-300 font-semibold">
+                        {record.workDuration || "-"}
+                      </td>
+                      <td className="py-3.5 px-3 text-right">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            record.status === "Completed"
+                              ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          }`}
+                        >
+                          {record.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {records.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-12 text-center text-gray-400">
+                        No attendance history found. Punch in above to create your first record!
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-
         </div>
-
       </div>
-
     </main>
   );
 }

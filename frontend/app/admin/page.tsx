@@ -2,127 +2,144 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ShieldCheck, User, Lock, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { useToast } from "@/components/Toast";
 
 export default function AdminLogin() {
   const router = useRouter();
+  const { toast } = useToast();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function login() {
-    if (username === "admin" && password === "admin123") {
-      router.push("/admin/dashboard");
-    } else {
-      alert("Invalid Username or Password");
+  async function login(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+
+    if (!username || !password) {
+      toast("Please enter both username and password.", "error");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/employee/admin-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("adminUser", JSON.stringify(data.admin));
+        toast("Admin authenticated successfully! Redirecting...", "success");
+        router.push("/admin/dashboard");
+      } else {
+        toast(data.message || "Invalid Admin username or password.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Could not connect to backend server.", "error");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-6">
-
-      <div className="w-full max-w-md rounded-3xl border border-cyan-500 bg-white/10 p-10 shadow-2xl backdrop-blur-xl">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 px-6 py-12">
+      <div className="w-full max-w-md rounded-3xl border border-cyan-500/40 bg-white/5 p-8 md:p-10 shadow-2xl backdrop-blur-2xl">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Home
+        </Link>
 
         {/* Admin Icon */}
-
         <div className="flex justify-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-cyan-500 shadow-xl">
-            <span className="text-5xl">👨‍💼</span>
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 shadow-xl shadow-cyan-500/20">
+            <ShieldCheck className="h-10 w-10 text-black" />
           </div>
         </div>
 
         {/* Title */}
-
         <div className="mt-6 text-center">
-
-          <h1 className="text-4xl font-bold text-white">
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">
             Admin Portal
           </h1>
-
-          <p className="mt-2 text-gray-300">
-            Attendance Management System
+          <p className="mt-1 text-sm text-gray-400">
+            Secure administrative control & attendance monitoring
           </p>
-
         </div>
 
-        {/* Username */}
-
-        <div className="mt-8">
-
-          <label className="mb-2 block font-semibold text-cyan-300">
-            Username
-          </label>
-
-          <input
-            type="text"
-            placeholder="Enter Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 bg-white p-3 text-black outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-300"
-          />
-
-        </div>
-
-        {/* Password */}
-
-        <div className="mt-6">
-
-          <label className="mb-2 block font-semibold text-cyan-300">
-            Password
-          </label>
-
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 bg-white p-3 text-black outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-300"
-          />
-
-        </div>
-
-        {/* Login Button */}
-
-        <button
-          onClick={login}
-          className="mt-8 w-full rounded-xl bg-cyan-500 py-3 text-lg font-bold text-black transition-all duration-300 hover:scale-105 hover:bg-cyan-400 active:scale-95"
-        >
-          Login to Dashboard
-        </button>
-
-        {/* Demo Credentials */}
-
-        <div className="mt-8 rounded-2xl border border-cyan-400 bg-cyan-500/10 p-4">
-
-          <h2 className="mb-2 text-lg font-semibold text-cyan-300">
-            Demo Credentials
-          </h2>
-
-          <div className="space-y-1 text-gray-300">
-            <p>
-              Username:
-              <span className="ml-2 font-semibold text-white">
-                admin
-              </span>
-            </p>
-
-            <p>
-              Password:
-              <span className="ml-2 font-semibold text-white">
-                admin123
-              </span>
-            </p>
+        <form onSubmit={login} className="mt-8 space-y-5">
+          {/* Username */}
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-cyan-300">
+              Admin Username
+            </label>
+            <div className="relative">
+              <User className="absolute left-3.5 top-3.5 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900/80 pl-11 pr-4 py-3 text-white placeholder-gray-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+              />
+            </div>
           </div>
 
+          {/* Password */}
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-cyan-300">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-gray-400" />
+              <input
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-slate-700 bg-slate-900/80 pl-11 pr-4 py-3 text-white placeholder-gray-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+              />
+            </div>
+          </div>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 py-3.5 text-base font-bold text-slate-950 transition hover:from-cyan-300 hover:to-blue-400 shadow-lg shadow-cyan-500/25 disabled:opacity-60"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" /> Authenticating...
+              </>
+            ) : (
+              <>
+                Enter Admin Dashboard <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Demo Credentials Helper */}
+        <div className="mt-8 rounded-2xl border border-cyan-500/30 bg-cyan-950/30 p-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-cyan-300 mb-2">
+            Demo Credentials
+          </h2>
+          <div className="flex justify-between text-xs text-gray-300 font-mono">
+            <span>User: <strong className="text-white">admin</strong></span>
+            <span>Password: <strong className="text-white">admin123</strong></span>
+          </div>
         </div>
-
-        {/* Footer */}
-
-        <div className="mt-8 text-center text-sm text-gray-400">
-          Secure access for authorized administrators only.
-        </div>
-
       </div>
-
     </main>
   );
 }

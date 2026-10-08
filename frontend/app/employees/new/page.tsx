@@ -9,7 +9,8 @@ export default function EmployeeRegistration() {
   const [department, setDepartment] = useState("");
 
   async function registerEmployee() {
-    const response = await fetch("http://localhost:3001/employee", {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const response = await fetch(`${apiUrl}/employee`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
